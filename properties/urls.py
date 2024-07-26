@@ -1,7 +1,17 @@
+# properties/urls.py
 from django.urls import path
-from .views import PropertyListCreate, PropertyRetrieveUpdateDestroy
+
+from .views import PropertyDetailView, PropertyListView
 
 urlpatterns = [
-    path('properties/', PropertyListCreate.as_view(), name='property-list-create'),
-    path('properties/<int:pk>/', PropertyRetrieveUpdateDestroy.as_view(), name='property-retrieve-update-destroy'),
+    path(
+        'properties/',
+        PropertyListView.as_view(),
+        name='property-list'
+    ),
+    path(
+        'properties/<int:pk>/',
+        PropertyDetailView.as_view(),
+        name='property-detail'
+    ),
 ]
