@@ -2,8 +2,18 @@ from .models import Property
 
 
 class PropertyService:
-    def list_properties(self):
-        return Property.objects.all()
+    def list_properties(self, **filters):
+        # Aplicar filtros dinámicamente
+        properties = Property.objects.all()
+        if 'property_type' in filters:
+            properties = properties.filter(property_type=filters['property_type'])
+        if 'min_price' in filters:
+            properties = properties.filter(price__gte=filters['min_price'])
+        if 'max_price' in filters:
+            properties = properties.filter(price__lte=filters['max_price'])
+        if 'size' in filters:
+            properties = properties.filter(size=filters['size'])
+        return properties
 
     def get_property(self, pk):
         return Property.objects.get(pk=pk)
