@@ -1,79 +1,160 @@
-# properties/tests/test_views.py
+# tests/integration/test_property_views.py
+
 import pytest
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.contrib.auth import get_user_model
 from properties.models import Property
 
 
-@pytest.fixture
-def user():
+ENDPOINT = "/api/pre-loans"
+
+
+@pytest.mark.django_db
+def test_property_list_view(client):
+    # Crear un usuario
     User = get_user_model()
     user = User.objects.create_user(username="testuser", password="testpass")
-    return user
+    
+    # Autenticación del usuario
+    client.login(username="testuser", password="testpass")
 
-
-@pytest.fixture
-def api_client(user):
-    client = APIClient()
-    refresh = RefreshToken.for_user(user)
-    access_token = str(refresh.access_token)
-    client.credentials(HTTP_AUTHORIZATION="Bearer " + access_token)
-    return client
-
-
-@pytest.fixture
-def property_instance():
-    return Property.objects.create(
-        address="Calle 100 # 4",
-        price=18000000.00,
-        size=85,
-        description="Casa destino"
+    # Crear algunas propiedades para la prueba
+    Property.objects.create(
+        address="En daguita",
+        price=150000.00,
+        size=1200,
+        description="Esta es una.",
+        property_type="house",
+        bedrooms=3,
+        bathrooms=2,
+        parking_spaces=2,
+        year_built=2000,
+        is_furnished=True
+    )
+    
+    Property.objects.create(
+        address="En daguita",
+        price=250000.00,
+        size=2000,
+        description="Mi casa vieja",
+        property_type="house",
+        bedrooms=4,
+        bathrooms=3,
+        parking_spaces=3,
+        year_built=2010,
+        is_furnished=False
     )
 
-
-def test_list_properties(api_client, property_instance):
-    url = reverse("property-list")
-    response = api_client.get(url)
+    # Realizar la solicitud GET
+    url = reverse('/api/properties/')  # 
+    response = client.get(url, {'property_type': 'house', 'min_price': 100000})
+    
     assert response.status_code == status.HTTP_200_OK
-    assert "results" in response.data
-    assert len(response.data["results"]) > 0
+    assert len(response.data['results']) == 2  # Verifica que las dos propiedades se devuelvan
 
+@pytest.mark.django_db
+def test_property_create_view(client):
+    # Crear un usuario
+    User = get_user_model()
+    user = User.objects.create_user(username="testuser", password="testpass")
+    
+    # Autenticación del usuario
+    client.login(username="testuser", password="testpass")
 
-def test_create_property(api_client):
-    url = reverse("property-list")
+    # Datos para crear una nueva propiedad
     data = {
-        "address": "Calle 200 # 5",
-        "price": "20000000.00",
-        "size": 90,
-        "description": "Nueva casa",
+        "address": "Direccion ejemplo",
+        "price": 200000.00,
+        "size": 1500,
+        "description": "casita.",
+        "property_type": "apartmento",
+        "bedrooms": 2,
+        "bathrooms": 1,
+        "parking_spaces": 1,
+        "year_built": 2015,
+        "is_furnished": True
     }
-    response = api_client.post(url, data, format="json")
+
+    # Realizar la solicitud POST
+    url = reverse('property-list')  # 
+    response = client.post(url, data, format='json')
+    
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.data["address"] == data["address"]
+    assert response.data['address'] == "Direccion ejemplo"
 
 
-def test_get_property(api_client, property_instance):
-    url = reverse("property-detail", args=[property_instance.pk])
-    response = api_client.get(url)
+@pytest.mark.django_db
+def test_property_update_view(client):
+    # Crear un usuario
+    User = get_user_model()
+    user = User.objects.create_user(username="testuser", password="testpass")
+    
+    # Autenticación del usuario
+    client.login(username="testuser", password="testpass")
+
+    # Crear una propiedad
+    property_instance = Property.objects.create(
+        address="La elsa",
+        price=150000.00,
+        size=1200,
+        description="Casa buena",
+        property_type="house",
+        bedrooms=3,
+        bathrooms=2,
+        parking_spaces=2,
+        year_built=2000,
+        is_furnished=True
+    )
+
+    # Datos para actualizar la propiedad
+    data = {
+        "address": "La elsa",
+        "price": 160000.00,
+        "size": 1300,
+        "description": "Lejos.",
+        "property_type": "house",
+        "bedrooms": 3,
+        "bathrooms": 2,
+        "parking_spaces": 2,
+        "year_built": 2001,
+        "is_furnished": True
+    }
+
+    # Realizar la solicitud PUT
+    url = reverse('/api/properties/', args=[property_instance.id])  # 
+    response = client.put(url, data, format='json')
+    
     assert response.status_code == status.HTTP_200_OK
-    assert response.data["address"] == property_instance.address
+    assert response.data['address'] == "La elsa"
 
+@pytest.mark.django_db
+def test_property_delete_view(client):
+    # Crear un usuario
+    User = get_user_model()
+    user = User.objects.create_user(username="testuser", password="testpass")
+    
+    # Autenticación del usuario
+    client.login(username="testuser", password="testpass")
 
-def test_update_property(api_client, property_instance):
-    url = reverse("property-detail", args=[property_instance.pk])
-    data = {"price": "25000000.00", "size": 95}
-    response = api_client.put(url, data, format="json")
-    assert response.status_code == status.HTTP_200_OK
-    assert response.data["price"] == data["price"]
-    assert response.data["size"] == data["size"]
+    # Crear una propiedad
+    property_instance = Property.objects.create(
+        address="La elsa",
+        price=150000.00,
+        size=1200,
+        description="A nice house.",
+        property_type="house",
+        bedrooms=3,
+        bathrooms=2,
+        parking_spaces=2,
+        year_built=2000,
+        is_furnished=True
+    )
 
-
-def test_delete_property(api_client, property_instance):
-    url = reverse("property-detail", args=[property_instance.pk])
-    response = api_client.delete(url)
+    # Realizar la solicitud DELETE
+    url = reverse('/api/properties/', args=[property_instance.id])  # 
+    response = client.delete(url)
+    
     assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert Property.objects.count() == 0
+    assert Property.objects.filter(id=property_instance.id).count() == 0

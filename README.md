@@ -2,6 +2,9 @@
 Backend Python + Django + DRF + Pytest + JWT + Docker + Github Actions + PostgreSQL + Swagger + AWS - aplicación web de gestión de propiedades inmobiliarias. La aplicación permitirá  a los usuarios (agentes inmobiliarios) crear, leer, actualizar y eliminar registros de propiedades.
 
 
+### Documentacion de endpoints
+https://documenter.getpostman.com/view/14968211/2sA3kbhyTp
+
 ## Clonar el Repositorio
 
 1. Abre una terminal o línea de comandos.
