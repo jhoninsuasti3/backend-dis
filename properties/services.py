@@ -13,6 +13,8 @@ class PropertyService:
             properties = properties.filter(price__lte=filters['max_price'])
         if 'size' in filters:
             properties = properties.filter(size=filters['size'])
+        if 'antiguedad' in filters:
+            properties = properties.filter(antiguedad=filters['antiguedad'])
         return properties
 
     def get_property(self, pk):

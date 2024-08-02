@@ -33,7 +33,8 @@ class PropertyListView(APIView):
             'min_price': request.query_params.get('min_price', None),
             'max_price': request.query_params.get('max_price', None),
             'size': request.query_params.get('size', None),
-        }
+            'antiguedad': request.query_params.get('antiguedad', None),
+            }
         # Eliminar filtros con valores None
         filters = {key: value for key, value in filters.items() if value is not None}
         properties = service.list_properties(**filters)
